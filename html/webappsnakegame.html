@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #282c34;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        canvas {
+            background-color: #000;
+            display: block;
+            border: 2px solid #fff;
+        }
+        #game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        #game-over button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            font-size: 16px;
+            background-color: #61dafb;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="game-over">
+        <h1>Game Over</h1>
+        <button onclick="startGame()">Restart</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const tileSize = 20;
+        let snake, food, dx, dy, score, gameLoop, isGameOver;
+
+        function initGame() {
+            snake = [{ x: 200, y: 200 }];
+            dx = tileSize;
+            dy = 0;
+            score = 0;
+            isGameOver = false;
+            placeFood();
+        }
+
+        function placeFood() {
+            food = {
+                x: Math.floor(Math.random() * (canvas.width / tileSize)) * tileSize,
+                y: Math.floor(Math.random() * (canvas.height / tileSize)) * tileSize,
+            };
+        }
+
+        function drawSnake() {
+            ctx.fillStyle = 'lime';
+            snake.forEach(segment => {
+                ctx.fillRect(segment.x, segment.y, tileSize, tileSize);
+            });
+        }
+
+        function drawFood() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(food.x, food.y, tileSize, tileSize);
+        }
+
+        function moveSnake() {
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                placeFood();
+            } else {
+                snake.pop();
+            }
+
+            if (
+                head.x < 0 || head.y < 0 ||
+                head.x >= canvas.width || head.y >= canvas.height ||
+                snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y)
+            ) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameLoop);
+            document.getElementById('game-over').style.display = 'block';
+            isGameOver = true;
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawSnake();
+            drawFood();
+        }
+
+        function updateGame() {
+            if (!isGameOver) {
+                moveSnake();
+                drawGame();
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'ArrowUp' && dy === 0) {
+                dx = 0;
+                dy = -tileSize;
+            } else if (event.key === 'ArrowDown' && dy === 0) {
+                dx = 0;
+                dy = tileSize;
+            } else if (event.key === 'ArrowLeft' && dx === 0) {
+                dx = -tileSize;
+                dy = 0;
+            } else if (event.key === 'ArrowRight' && dx === 0) {
+                dx = tileSize;
+                dy = 0;
+            }
+        }
+
+        function startGame() {
+            document.getElementById('game-over').style.display = 'none';
+            initGame();
+            gameLoop = setInterval(updateGame, 100);
+        }
+
+        document.addEventListener('keydown', handleKeyDown);
+        startGame();
+    </script>
+</body>
+</html>
